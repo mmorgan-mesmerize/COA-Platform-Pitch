@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Mesmerize Integrated Point-of-Care Platform — Community Oncology</title>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --navy: #003F5C;
+  --purple: #665191;
+  --sky-blue: #0EA5E9;
+  --orange: #FFA600;
+  --slate: #2F4B7C;
+  --bg-dark: #0f172a;
+  --card-bg: #020617;
+  --text-light: #f8fafc;
+  --text-dim: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #1e293b;
+  --border-light: #334155;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg-dark);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-light);
+  overflow-x: hidden;
+}
+
+/* Progress bar */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--navy), var(--purple), var(--sky-blue), var(--orange));
+  z-index: 1000;
+  transition: width 0.3s ease;
+}
+
+/* Slide counter */
+#slide-counter {
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(2,6,23,0.85);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+/* Navigation hints */
+#nav-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 30px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: rgba(2,6,23,0.85);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  z-index: 1000;
+  opacity: 0.7;
+}
+
+/* Slide wrapper */
+.slide-wrapper {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  scroll-snap-align: start;
+}
+
+.slide-container {
+  width: 1280px;
+  height: 720px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  padding: 50px 70px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.slide-container::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle at top right, rgba(14,165,233,0.06), transparent 40%);
+  pointer-events: none;
+}
+
+.slide-container.title-slide {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.slide-container.centered {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Slide titles */
+.slide-title {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 38px;
+  font-weight: 800;
+  border-left: 6px solid var(--navy);
+  padding-left: 20px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  color: var(--text-light);
+  background: linear-gradient(90deg, rgba(0,63,92,0.12) 0%, transparent 100%);
+  width: 100%;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.slide-title.sky-blue { border-left-color: var(--sky-blue); background: linear-gradient(90deg, rgba(14,165,233,0.08) 0%, transparent 100%); }
+.slide-title.orange { border-left-color: var(--orange); background: linear-gradient(90deg, rgba(255,166,0,0.08) 0%, transparent 100%); }
+.slide-title.purple { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(102,81,145,0.08) 0%, transparent 100%); }
+.slide-title.slate { border-left-color: var(--slate); background: linear-gradient(90deg, rgba(47,75,124,0.08) 0%, transparent 100%); }
+
+.slide-title span { font-weight: 800; }
+.slide-title .hl-sky-blue { color: var(--sky-blue); }
+.slide-title .hl-orange { color: var(--orange); }
+.slide-title .hl-navy { color: var(--navy); }
+
+/* Slide content area */
+.slide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* KPI Cards */
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.kpi-card {
+  background-color: var(--bg-dark);
+  border-radius: 12px;
+  padding: 28px;
+  border-top: 5px solid;
+  border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+.kpi-value {
+  font-size: 48px;
+  font-weight: 900;
+  font-family: 'Urbanist', sans-serif;
+  margin-bottom: 6px;
+}
+.kpi-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.kpi-desc {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Two-column layouts */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 100%; }
+.two-col.gap-40 { gap: 40px; }
+
+.tile {
+  background-color: var(--bg-dark);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+.tile h3 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.tile h3.sky-blue { color: var(--sky-blue); }
+.tile h3.orange { color: var(--orange); }
+.tile h3.purple { color: var(--purple); }
+.tile h3.navy { color: var(--navy); }
+
+.tile p, .tile li {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.tile ul { padding-left: 18px; }
+.tile li { margin-bottom: 4px; }
+
+/* Bridge flow */
+.bridge-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.bridge-step {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+}
+.bridge-step .step-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+.bridge-step .step-label {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-light);
+}
+.bridge-step::after {
+  content: '\f054';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+  z-index: 2;
+}
+.bridge-step:last-child::after { display: none; }
+
+/* Pipeline flow */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pipe-step {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  position: relative;
+}
+.pipe-step .pipe-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+.pipe-step .pipe-label {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+.pipe-step .pipe-detail { font-size: 9px; color: var(--text-muted); }
+.pipe-step::after {
+  content: '\f054';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 10px;
+  z-index: 2;
+}
+.pipe-step:last-child::after { display: none; }
+
+/* Tables */
+.strat-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+}
+.strat-table th {
+  background: #1e293b;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 14px;
+  text-align: left;
+}
+.strat-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  vertical-align: top;
+}
+.strat-table tr:last-child td { border-bottom: none; }
+.strat-table .total-row td {
+  font-weight: 700;
+  color: var(--text-light);
+  background: rgba(255,166,0,0.08);
+  border-top: 2px solid var(--orange);
+}
+
+/* Competitive matrix */
+.comp-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+}
+.comp-matrix th {
+  background: #1e293b;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 14px;
+  text-align: left;
+}
+.comp-matrix td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.comp-matrix tr:last-child td { border-bottom: none; }
+.comp-matrix .row-highlight td { background: rgba(255,255,255,0.02); }
+.comp-matrix .check { color: #22c55e; }
+.comp-matrix .cross { color: #ef4444; }
+.comp-matrix .partial { color: var(--text-muted); }
+
+/* Surface cards */
+.surface-card {
+  background: var(--bg-dark);
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+.surface-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.surface-card .sc-name {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+.surface-card .sc-hw {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.surface-card .sc-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+
+/* Bullet list with icons */
+.moat-list { list-style: none; padding: 0; }
+.moat-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.moat-list li i {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 1px;
+}
+
+/* Timeline */
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.timeline-block {
+  background: var(--bg-dark);
+  border-radius: 10px;
+  padding: 18px 14px;
+  border-top: 4px solid;
+  text-align: center;
+}
+.timeline-block .tl-months {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.timeline-block .tl-title {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+.timeline-block .tl-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.timeline-block .tl-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* Highlight utilities */
+.hl { font-weight: 700; }
+.hl-sky-blue { color: var(--sky-blue); }
+.hl-orange { color: var(--orange); }
+.hl-navy { color: var(--navy); }
+.hl-purple { color: var(--purple); }
+.hl-green { color: #22c55e; }
+
+/* Tagline bar */
+.tagline {
+  background: linear-gradient(90deg, rgba(0,63,92,0.15), rgba(14,165,233,0.1));
+  border: 1px solid rgba(0,63,92,0.3);
+  border-radius: 10px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-align: center;
+  margin-top: auto;
+}
+
+/* Small inline badge */
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge-green { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.badge-blue { background: rgba(14,165,233,0.15); color: var(--sky-blue); border: 1px solid rgba(14,165,233,0.3); }
+.badge-purple { background: rgba(102,81,145,0.15); color: var(--purple); border: 1px solid rgba(102,81,145,0.3); }
+.badge-orange { background: rgba(255,166,0,0.15); color: var(--orange); border: 1px solid rgba(255,166,0,0.3); }
+
+.subtitle {
+  font-size: 16px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Product images */
+.product-img {
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  object-fit: cover;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+.img-caption {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* Ecosystem column cards for PPTX slide 2 */
+.eco-col {
+  background: var(--bg-dark);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.eco-col img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #0a1225;
+}
+.eco-col h3 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.eco-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.eco-col ul li {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 3px 0;
+  padding-left: 16px;
+  position: relative;
+}
+.eco-col ul li::before {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  font-size: 9px;
+  top: 5px;
+}
+
+/* Differentiator numbered blocks for PPTX slide 3 */
+.diff-block {
+  background: var(--bg-dark);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  padding: 22px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.diff-num {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: white;
+}
+.diff-block h3 {
+  font-family: 'Urbanist', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.diff-block p {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* Print styles */
+@media print {
+  body { background: white; }
+  .slide-wrapper { page-break-after: always; padding: 0; min-height: auto; }
+  .slide-container { box-shadow: none; border: 1px solid #ddd; }
+  #progress-bar, #slide-counter, #nav-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="slide-counter">1 / 16</div>
+<div id="nav-hint"><i class="fa-solid fa-arrow-left"></i> <i class="fa-solid fa-arrow-right"></i> Arrow keys to navigate</div>
+
+<!-- ======================== SLIDE 1 (PPTX): Title — Introducing Mesmerize to COA ======================== -->
+<div class="slide-wrapper" id="slide-1">
+<div class="slide-container title-slide">
+  <div style="margin-bottom: 24px;">
+    <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted);">
+      Introducing Mesmerize to Community Oncology Alliance
+    </span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 28px;">
+    <img src="pptx-images/slide1-picture-29.png" alt="Mesmerize Logo" style="height: 52px; width: auto; object-fit: contain;">
+    <span style="font-size: 28px; color: var(--border-light); font-weight: 300;">&times;</span>
+    <img src="pptx-images/slide1-graphic-33.png" alt="COA Logo" style="height: 52px; width: auto; object-fit: contain;">
+  </div>
+  <h1 style="font-family: 'Urbanist', sans-serif; font-size: 52px; font-weight: 900; line-height: 1.15; margin-bottom: 16px;">
+    Elevating Oncology<br><span style="color: var(--sky-blue);">Patient Care</span>
+  </h1>
+  <p style="font-size: 20px; color: var(--text-dim); margin-bottom: 28px; max-width: 850px;">
+    A Point-of-Care Partnership Built for Community Oncology Practices
+  </p>
+  <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 28px;">
+    <span class="badge badge-blue"><i class="fa-solid fa-tv"></i>&ensp;Waiting Room Screens</span>
+    <span class="badge badge-purple"><i class="fa-solid fa-tablet-screen-button"></i>&ensp;Exam Room Screens</span>
+    <span class="badge badge-orange"><i class="fa-solid fa-laptop-medical"></i>&ensp;Back Office Programs</span>
+  </div>
+  <p style="font-size: 12px; color: var(--text-muted);">
+    An MJH Life Sciences&reg; Brand
+  </p>
+</div>
+</div>
+
+<!-- ======================== SLIDE 2 (PPTX): The Mesmerize Ecosystem ======================== -->
+<div class="slide-wrapper" id="slide-2">
+<div class="slide-container">
+  <div class="slide-title sky-blue">The Mesmerize Ecosystem for <span class="hl-sky-blue">Community Oncology</span></div>
+  <div class="slide-content">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; flex: 1;">
+      <!-- Column 1: Waiting Room -->
+      <div class="eco-col">
+        <img src="pptx-images/slide2-picture-31.png" alt="Waiting Room Screens">
+        <h3 style="color: var(--sky-blue);"><i class="fa-solid fa-tv" style="margin-right: 6px;"></i>Waiting Room Screens</h3>
+        <ul>
+          <li style="color: var(--sky-blue);">43" custom-branded HD display</li>
+          <li>Oncology-specific patient education</li>
+          <li>White-labeled with your practice brand</li>
+          <li>Turn wait time into learning time</li>
+          <li style="color: #22c55e;"><strong>No cost to your practice</strong></li>
+        </ul>
+      </div>
+      <!-- Column 2: Exam Room -->
+      <div class="eco-col">
+        <img src="pptx-images/slide2-picture-22.png" alt="Exam Room Screens">
+        <h3 style="color: var(--purple);"><i class="fa-solid fa-tablet-screen-button" style="margin-right: 6px;"></i>Exam Room Screens</h3>
+        <ul>
+          <li>Interactive touchscreen education</li>
+          <li>EHR-triggered oncology content</li>
+          <li>Anatomy &amp; health library access</li>
+          <li>Reinforces provider conversations</li>
+          <li style="color: var(--sky-blue);">HCPLive&reg; clinical content integration</li>
+        </ul>
+      </div>
+      <!-- Column 3: Back Office -->
+      <div class="eco-col">
+        <img src="pptx-images/slide2-picture-26.png" alt="Back Office Programs">
+        <h3 style="color: var(--orange);"><i class="fa-solid fa-laptop-medical" style="margin-right: 6px;"></i>Back Office Programs</h3>
+        <ul>
+          <li>HCP-facing clinical news via HCPLive&reg;</li>
+          <li>Push targeted content by diagnosis</li>
+          <li>Command center content management</li>
+          <li>Custom whitepapers &amp; thought leadership</li>
+          <li style="color: var(--orange);">MJH Life Sciences&reg; editorial network</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 3 (PPTX): Why Mesmerize / Differentiators ======================== -->
+<div class="slide-wrapper" id="slide-3">
+<div class="slide-container">
+  <div class="slide-title orange">Why Mesmerize? The Differentiators That <span class="hl-orange">Matter for Oncology</span></div>
+  <div class="slide-content" style="gap: 16px;">
+    <div style="display: flex; flex-direction: column; gap: 14px; flex: 1; justify-content: center;">
+      <!-- Differentiator 1 -->
+      <div class="diff-block">
+        <div class="diff-num" style="background: var(--navy);">1</div>
+        <div>
+          <h3><i class="fa-solid fa-palette" style="color: var(--sky-blue); margin-right: 8px;"></i>Custom Content &amp; Production Team</h3>
+          <p>Dedicated oncology content specialists create tailored, practice-branded materials. From custom waiting room slides to HCP whitepapers, every asset is produced to your specifications &mdash; not off-the-shelf templates.</p>
+        </div>
+      </div>
+      <!-- Differentiator 2 -->
+      <div class="diff-block">
+        <div class="diff-num" style="background: var(--purple);">2</div>
+        <div>
+          <h3><i class="fa-solid fa-tags" style="color: var(--purple); margin-right: 8px;"></i>Full White-Label Capabilities</h3>
+          <p>Every screen, every piece of content can carry your practice brand &mdash; not ours. COA members can showcase their own identity while leveraging Mesmerize's full platform infrastructure and national content network.</p>
+        </div>
+      </div>
+      <!-- Differentiator 3 -->
+      <div class="diff-block">
+        <div class="diff-num" style="background: var(--orange);">3</div>
+        <div>
+          <h3><i class="fa-solid fa-building" style="color: var(--orange); margin-right: 8px;"></i>Powered by MJH Life Sciences&reg;</h3>
+          <p>The full editorial and clinical power of MJH Life Sciences &mdash; including HCPLive&reg;, OncLive&reg;, and EducatedPatient&reg; &mdash; backs every oncology content touchpoint. Trusted brand content your patients and providers already know.</p>
+        </div>
+      </div>
+    </div>
+    <div class="tagline" style="margin-top: 0;">
+      <i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--orange); margin-right: 8px;"></i>
+      <span class="hl hl-sky-blue">COA TV + Mesmerize:</span> Replace existing PatientPoint screens with a more powerful, oncology-first platform &mdash; <span class="hl hl-green">at no cost to your practice</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 4 (PPTX): CTA / Get Started ======================== -->
+<div class="slide-wrapper" id="slide-4">
+<div class="slide-container">
+  <div class="slide-content" style="justify-content: center;">
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center;">
+      <!-- Left side: CTA content -->
+      <div>
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 12px;">
+          <i class="fa-solid fa-rocket" style="margin-right: 6px;"></i>Next Steps
+        </div>
+        <h2 style="font-family: 'Urbanist', sans-serif; font-size: 34px; font-weight: 900; line-height: 1.2; margin-bottom: 20px;">
+          Let's Build Your Oncology<br><span style="color: var(--sky-blue);">Point-of-Care Experience</span>
+        </h2>
+        <p style="font-size: 15px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.6;">
+          Mesmerize delivers what COA practices need &mdash; and what PatientPoint can't:
+        </p>
+        <ul class="moat-list">
+          <li>
+            <i class="fa-solid fa-palette" style="background: rgba(14,165,233,0.15); color: var(--sky-blue);"></i>
+            <div>Custom oncology content created by a <span class="hl" style="color: var(--text-light);">dedicated production team</span></div>
+          </li>
+          <li>
+            <i class="fa-solid fa-tags" style="background: rgba(102,81,145,0.15); color: var(--purple);"></i>
+            <div>Full <span class="hl" style="color: var(--text-light);">white-label branding</span> so your practice identity leads</div>
+          </li>
+          <li>
+            <i class="fa-solid fa-building" style="background: rgba(255,166,0,0.15); color: var(--orange);"></i>
+            <div><span class="hl" style="color: var(--text-light);">MJH Life Sciences&reg;</span> / OncLive&reg; / HCPLive&reg; editorial power</div>
+          </li>
+          <li>
+            <i class="fa-solid fa-layer-group" style="background: rgba(0,63,92,0.15); color: var(--navy);"></i>
+            <div>Waiting room, exam room &amp; back office &mdash; <span class="hl" style="color: var(--text-light);">a complete platform</span></div>
+          </li>
+          <li>
+            <i class="fa-solid fa-circle-check" style="background: rgba(34,197,94,0.15); color: #22c55e;"></i>
+            <div><span class="hl hl-green">No cost</span> installation, maintenance &amp; ongoing content updates</div>
+          </li>
+        </ul>
+      </div>
+      <!-- Right side: Contact box -->
+      <div style="background: linear-gradient(135deg, rgba(0,63,92,0.15), rgba(14,165,233,0.08)); border-radius: 16px; padding: 36px 32px; border: 1px solid var(--border-light); text-align: center;">
+        <div style="font-family: 'Urbanist', sans-serif; font-size: 26px; font-weight: 900; color: var(--text-light); margin-bottom: 16px;">
+          <i class="fa-solid fa-handshake" style="color: var(--sky-blue); margin-right: 8px;"></i>GET STARTED
+        </div>
+        <p style="font-size: 15px; color: var(--text-dim); margin-bottom: 24px; line-height: 1.6;">
+          Ready to upgrade your<br>practice experience?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px;">
+          <a href="https://mesmerize.com" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,166,0,0.12); border: 1px solid rgba(255,166,0,0.3); border-radius: 10px; padding: 14px 20px; text-decoration: none; color: var(--orange); font-family: 'Urbanist'; font-size: 16px; font-weight: 800;">
+            <i class="fa-solid fa-globe"></i> mesmerize.com
+          </a>
+          <a href="mailto:patienteducation@mesmerize.com" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); border-radius: 10px; padding: 14px 20px; text-decoration: none; color: var(--sky-blue); font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">
+            <i class="fa-solid fa-envelope"></i> patienteducation@mesmerize.com
+          </a>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 16px;">
+          MESMERIZE&ensp;|&ensp;An MJH Life Sciences&reg; Brand&ensp;|&ensp;mesmerizepoc.com
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 5: Title (was original slide 1) ======================== -->
+<div class="slide-wrapper" id="slide-5">
+<div class="slide-container title-slide">
+  <div style="margin-bottom: 30px;">
+    <span style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted);">
+      <i class="fa-solid fa-ribbon"></i>&ensp;Mesmerize &ensp;|&ensp; Point-of-Care Platform for Community Oncology
+    </span>
+  </div>
+  <h1 style="font-family: 'Urbanist', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.15; margin-bottom: 20px;">
+    The Next Generation of<br><span style="color: var(--sky-blue);">Point-of-Care for Oncology</span>
+  </h1>
+  <p style="font-size: 22px; color: var(--text-dim); margin-bottom: 16px; max-width: 850px;">
+    Automated Documentation &bull; Complete Billing Capture &bull; Premium Patient Education<br>
+    <span style="font-size: 17px; color: var(--text-muted); margin-top: 8px; display: inline-block;">All at zero cost to your practice</span>
+  </p>
+  <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 30px; max-width: 850px;">
+    Powered by <span class="hl" style="color: var(--text-light);">CURE&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">OncLive&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">Targeted Oncology&trade;</span> &bull; <span class="hl" style="color: var(--text-light);">CancerNetwork&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">Oncology Nursing News&reg;</span><br>
+    <span style="font-size: 12px; margin-top: 4px; display: inline-block;">Mesmerize &mdash; a wholly owned subsidiary of MJH Life Sciences</span>
+  </p>
+  <div style="display: flex; gap: 20px; align-items: center;">
+    <span class="badge badge-green"><i class="fa-solid fa-check-circle"></i>&ensp;$0 Cost to Practice</span>
+    <span class="badge badge-blue"><i class="fa-solid fa-shield-halved"></i>&ensp;HIPAA Compliant</span>
+    <span class="badge badge-purple"><i class="fa-solid fa-plug"></i>&ensp;95+ EHR Integrations</span>
+    <span class="badge badge-orange"><i class="fa-solid fa-ribbon"></i>&ensp;Oncology-Specialized Content</span>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 6: The Solution (was original slide 2) ======================== -->
+<div class="slide-wrapper" id="slide-6">
+<div class="slide-container">
+  <div class="slide-title">What We <span class="hl-sky-blue">Deliver</span></div>
+  <div class="slide-content">
+    <div style="background: var(--bg-dark); border-radius: 12px; border: 1px solid var(--border-light); padding: 16px 24px; margin-bottom: 16px;">
+      <p style="font-size: 15px; line-height: 1.6; color: var(--text-dim);">
+        A <span class="hl hl-sky-blue">fully managed platform</span> that automates clinical documentation, captures complete billing codes,
+        and delivers oncology-specialized patient education on managed devices &mdash;
+        <span class="hl hl-green">at zero cost to your practice</span>. We provide the hardware, the software, the content, the training, and ongoing support.
+      </p>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; flex: 1; min-height: 0;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+        <img src="../Mesmerize_Image_v2_HCP_Exam.png" class="product-img" alt="Provider using Mesmerize exam room display" style="max-height: 280px; width: auto;">
+        <div class="img-caption">Provider using Mesmerize touchscreen for oncology patient education</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: rgba(56,189,248,0.08); border-radius: 12px; border: 1px solid rgba(56,189,248,0.2); text-align: center; padding: 18px;">
+          <div style="color: #38bdf8; font-size: 28px; margin-bottom: 6px;"><i class="fa-solid fa-file-medical"></i></div>
+          <div style="font-family: 'Urbanist'; font-size: 16px; font-weight: 800; margin-bottom: 4px;">AI-Powered Documentation</div>
+          <div style="font-size: 12px; color: var(--text-dim);">SOAP notes, treatment plans, referral letters &mdash; generated from ambient listening, done before leaving the room</div>
+        </div>
+        <div style="background: rgba(255,166,0,0.08); border-radius: 12px; border: 1px solid rgba(255,166,0,0.2); text-align: center; padding: 18px;">
+          <div style="color: var(--orange); font-size: 28px; margin-bottom: 6px;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          <div style="font-family: 'Urbanist'; font-size: 16px; font-weight: 800; margin-bottom: 4px;">Complete Billing Capture</div>
+          <div style="font-size: 12px; color: var(--text-dim);">E/M upgrades, counseling codes, ACP, HCC risk adjustment &mdash; all automatically documented and coded</div>
+        </div>
+        <div style="background: rgba(102,81,145,0.08); border-radius: 12px; border: 1px solid rgba(102,81,145,0.2); text-align: center; padding: 18px;">
+          <div style="color: var(--purple); font-size: 28px; margin-bottom: 6px;"><i class="fa-solid fa-ribbon"></i></div>
+          <div style="font-family: 'Urbanist'; font-size: 16px; font-weight: 800; margin-bottom: 4px;">Oncology Content Library</div>
+          <div style="font-size: 12px; color: var(--text-dim);">CURE&reg;, OncLive&reg;, BioDigital 3D, Mesmerize videos &mdash; 15,000+ assets, white-labeled to your practice</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 7: 5 Connected Surfaces (was original slide 3) ======================== -->
+<div class="slide-wrapper" id="slide-7">
+<div class="slide-container">
+  <div class="slide-title purple">The Ecosystem &mdash; <span class="hl-sky-blue">5 Connected Surfaces</span></div>
+  <div class="slide-content" style="justify-content: space-between;">
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px;">
+      <div class="surface-card">
+        <img src="../Waiting Room TV.png" alt="Waiting Room Display">
+        <div class="sc-name">Waiting Room</div>
+        <div class="sc-hw">LG TV / Managed Device</div>
+        <div class="sc-desc">Custom oncology patient education, practice announcements, tickers</div>
+      </div>
+      <div class="surface-card">
+        <img src="../Back Office Command Center.png" alt="Command Center">
+        <div class="sc-name">Command Center</div>
+        <div class="sc-hw">Microtouch Landscape</div>
+        <div class="sc-desc">Provider dashboard, patient queue, pre-visit chart prep</div>
+      </div>
+      <div class="surface-card">
+        <img src="../Exam Room Anatomy.png" alt="Exam Room Display" style="object-fit: contain; background: rgba(255,255,255,0.03);">
+        <div class="sc-name">Exam Room</div>
+        <div class="sc-hw">Microtouch Portrait</div>
+        <div class="sc-desc">BioDigital 3D anatomy, treatment education, ambient capture</div>
+      </div>
+      <div class="surface-card">
+        <img src="../Bridge App Pic 2.png" alt="Bridge App" style="object-fit: contain; background: rgba(255,255,255,0.03);">
+        <div class="sc-name">Bridge App / Patient Portal</div>
+        <div class="sc-hw">Patient Phone / PWA</div>
+        <div class="sc-desc">Post-visit education, medication reminders, adherence tools</div>
+      </div>
+      <div class="surface-card" style="border: 2px solid rgba(34,197,94,0.4);">
+        <img src="../Pharmacy Screen.png" alt="Pharmacy Display">
+        <div class="sc-name">Pharmacy</div>
+        <div class="sc-hw">Pharmacy Screen</div>
+        <div class="sc-desc">Oral oncolytic education, refill reminders, adherence messaging</div>
+      </div>
+    </div>
+    <div class="tagline" style="margin-top: 0; padding: 10px 20px; font-size: 14px;">
+      <i class="fa-solid fa-bullseye" style="color: var(--orange); margin-right: 8px;"></i>
+      Each surface = <span class="hl hl-sky-blue">clinical documentation</span> &ensp;&bull;&ensp; Each interaction = <span class="hl hl-orange">billing capture</span> &ensp;&bull;&ensp; Every visit = <span class="hl hl-green">better patient outcomes</span>
+    </div>
+    <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+      <div style="text-align: center; padding: 8px; background: rgba(0,63,92,0.08); border-radius: 8px;">
+        <div style="font-size: 22px; font-weight: 900; font-family: 'Urbanist'; color: var(--navy);">15,000+</div>
+        <div style="font-size: 10px; color: var(--text-muted);">Education Assets</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: rgba(14,165,233,0.08); border-radius: 8px;">
+        <div style="font-size: 22px; font-weight: 900; font-family: 'Urbanist'; color: var(--sky-blue);">1,300+</div>
+        <div style="font-size: 10px; color: var(--text-muted);">3D Anatomy Models</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: rgba(255,166,0,0.08); border-radius: 8px;">
+        <div style="font-size: 22px; font-weight: 900; font-family: 'Urbanist'; color: var(--orange);">95+</div>
+        <div style="font-size: 10px; color: var(--text-muted);">EHR Integrations</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: rgba(34,197,94,0.08); border-radius: 8px;">
+        <div style="font-size: 22px; font-weight: 900; font-family: 'Urbanist'; color: #22c55e;">$0</div>
+        <div style="font-size: 10px; color: var(--text-muted);">Cost to Your Practice</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 8: Why Mesmerize (was original slide 4) ======================== -->
+<div class="slide-wrapper" id="slide-8">
+<div class="slide-container">
+  <div class="slide-title orange">Why <span class="hl-orange">Mesmerize</span></div>
+  <div class="slide-content">
+    <ul class="moat-list" style="margin-bottom: 20px;">
+      <li>
+        <i class="fa-solid fa-ribbon" style="background: rgba(14,165,233,0.15); color: var(--sky-blue);"></i>
+        <div><span class="hl" style="color: var(--text-light);">Deepest Oncology Content in Point-of-Care:</span> CURE&reg; (largest US cancer consumer publication), OncLive&reg;, Targeted Oncology&trade;, CancerNetwork&reg;, Oncology Nursing News&reg; &mdash; all MJH Life Sciences brands. No other point-of-care vendor has this depth of oncology-specific content.</div>
+      </li>
+      <li>
+        <i class="fa-solid fa-palette" style="background: rgba(255,166,0,0.15); color: var(--orange);"></i>
+        <div><span class="hl" style="color: var(--text-light);">Full Custom Content Production:</span> In-house team creates custom videos, infographics, sidebars, and tickers &mdash; tailored to your practice, your providers, your patients. Everything is 100% white-labeled to your brand.</div>
+      </li>
+      <li>
+        <i class="fa-solid fa-tv" style="background: rgba(0,63,92,0.15); color: var(--navy);"></i>
+        <div><span class="hl" style="color: var(--text-light);">Proven at Scale:</span> Already deployed across 3,000+ practice locations with 6,500+ managed devices. This isn't a startup experiment &mdash; it's an established platform being upgraded with AI-powered clinical tools.</div>
+      </li>
+      <li>
+        <i class="fa-solid fa-prescription-bottle-medical" style="background: rgba(34,197,94,0.15); color: #22c55e;"></i>
+        <div><span class="hl" style="color: var(--text-light);">Pharmacy Network:</span> Screens in independent and chain pharmacies nationwide &mdash; critical for oncology as treatment shifts to oral therapies. No other point-of-care vendor offers this.</div>
+      </li>
+      <li>
+        <i class="fa-solid fa-dollar-sign" style="background: rgba(102,81,145,0.15); color: var(--purple);"></i>
+        <div><span class="hl" style="color: var(--text-light);">True Zero Cost:</span> Hardware, software, content, custom production, installation, training, and ongoing support &mdash; all provided at no cost. No SaaS fees, no per-provider charges, no hidden costs.</div>
+      </li>
+    </ul>
+    <div class="tagline">
+      <i class="fa-solid fa-quote-left" style="color: var(--sky-blue); margin-right: 8px;"></i>
+      The only platform that combines <span class="hl hl-sky-blue">oncology-specialized content</span> + <span class="hl hl-orange">custom production</span> + <span class="hl hl-purple">ambient documentation</span> + <span class="hl hl-green">billing automation</span> &mdash; at zero cost
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 9: Live Platform Demo (was original slide-demo) ======================== -->
+<div class="slide-wrapper" id="slide-9">
+<div class="slide-container" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+  <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: linear-gradient(135deg, var(--navy), var(--purple)); color: #fff;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <i class="fa-solid fa-play-circle" style="font-size: 16px;"></i>
+      <span style="font-family: 'Urbanist'; font-weight: 800; font-size: 14px;">Live Platform Demo &mdash; Full Patient Journey</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="display: flex; gap: 8px; font-size: 9px; font-family: 'Urbanist'; font-weight: 700; opacity: 0.8;">
+        <span><i class="fa-solid fa-tv" style="margin-right: 3px;"></i>WR</span>
+        <span><i class="fa-solid fa-desktop" style="margin-right: 3px;"></i>CC</span>
+        <span><i class="fa-solid fa-tablet-screen-button" style="margin-right: 3px;"></i>ER</span>
+        <span><i class="fa-solid fa-mobile-screen" style="margin-right: 3px;"></i>Bridge/Portal</span>
+        <span><i class="fa-solid fa-laptop-medical" style="margin-right: 3px;"></i>EHR</span>
+        <span><i class="fa-solid fa-receipt" style="margin-right: 3px;"></i>Billing</span>
+      </div>
+      <button onclick="document.getElementById('demo-iframe').src = document.getElementById('demo-iframe').src"
+              style="padding: 4px 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; color: #fff; font-size: 10px; font-family: 'Urbanist'; font-weight: 700; cursor: pointer;"
+              onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        <i class="fa-solid fa-rotate-right" style="margin-right: 4px;"></i>Reset
+      </button>
+    </div>
+  </div>
+  <iframe id="demo-iframe"
+          src="https://poc-ecosystem.vercel.app/"
+          style="width: 100%; flex: 1; min-height: 0; border: none; display: block;"
+          allow="autoplay; fullscreen">
+  </iframe>
+</div>
+</div>
+
+<!-- ======================== SLIDE 10: AI Documentation Suite (was original slide 6) ======================== -->
+<div class="slide-wrapper" id="slide-10">
+<div class="slide-container">
+  <div class="slide-title">AI-Powered <span class="hl-sky-blue">Documentation Suite</span></div>
+  <div class="slide-content">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px;">
+      <div>
+        <p class="subtitle" style="margin-bottom: 16px;">From encounter to <span class="hl hl-sky-blue">complete documentation</span> &mdash; before the oncologist leaves the room:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: var(--navy); font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-notes-medical"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">SOAP Notes</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Complete structured clinical notes</div>
+          </div>
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: var(--purple); font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-paper-plane"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">Referral Letters</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Auto-generated specialist referrals</div>
+          </div>
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: var(--sky-blue); font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-file-lines"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">Patient Instructions</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Treatment &amp; side-effect guidance</div>
+          </div>
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: var(--orange); font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-flask-vial"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">Lab &amp; Imaging Orders</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Pre-populated from encounter</div>
+          </div>
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: #22c55e; font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-list-check"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">Treatment Plans</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Updated automatically per visit</div>
+          </div>
+          <div style="background: var(--bg-dark); border-radius: 8px; padding: 14px; border: 1px solid var(--border-light);">
+            <div style="color: var(--slate); font-size: 18px; margin-bottom: 6px;"><i class="fa-solid fa-calendar-check"></i></div>
+            <div style="font-size: 13px; font-weight: 700;">Follow-Up Scheduling</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Recommended intervals detected</div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(0,63,92,0.12), rgba(14,165,233,0.08)); border-radius: 12px; padding: 28px; border: 1px solid var(--border-light);">
+          <div style="font-family: 'Urbanist'; font-size: 20px; font-weight: 800; color: var(--text-light); margin-bottom: 16px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--sky-blue);"></i>&ensp;How It Works
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="background: var(--navy); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">1</span>
+              <span style="font-size: 14px; color: var(--text-dim);">Ambient listening captures the encounter with speaker diarization</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="background: var(--purple); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">2</span>
+              <span style="font-size: 14px; color: var(--text-dim);">AI extracts diagnoses, treatment decisions, and ICD-10 codes from conversation</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="background: var(--sky-blue); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">3</span>
+              <span style="font-size: 14px; color: var(--text-dim);">AI generates complete SOAP notes + all supporting documents</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="background: var(--orange); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">4</span>
+              <span style="font-size: 14px; color: var(--text-dim);">Billing engine maps to complete CPT + ICD-10 codes automatically</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="background: #22c55e; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;">5</span>
+              <span style="font-size: 14px; color: var(--text-dim);">Writes back to your EHR &mdash; bidirectional sync with 95+ systems</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tagline" style="margin-top: 0;">
+      <i class="fa-solid fa-clock" style="color: var(--sky-blue); margin-right: 8px;"></i>
+      Oncologists finish documentation <span class="hl hl-orange">before leaving the exam room</span> &mdash; eliminating 2+ hours of &ldquo;pajama time&rdquo; every day
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 11: Revenue Recovery (was original slide 7) ======================== -->
+<div class="slide-wrapper" id="slide-11">
+<div class="slide-container">
+  <div class="slide-title sky-blue">Revenue Your Oncology Practice <span class="hl-sky-blue">Is Missing Today</span></div>
+  <div class="slide-content">
+    <div class="bridge-flow" style="margin-bottom: 16px;">
+      <div class="bridge-step">
+        <span class="step-icon" style="color: var(--navy);"><i class="fa-solid fa-clipboard-check"></i></span>
+        <span class="step-label">Patient Check-in</span>
+      </div>
+      <div class="bridge-step">
+        <span class="step-icon" style="color: var(--purple);"><i class="fa-solid fa-microphone"></i></span>
+        <span class="step-label">Ambient Capture</span>
+      </div>
+      <div class="bridge-step">
+        <span class="step-icon" style="color: var(--sky-blue);"><i class="fa-solid fa-brain"></i></span>
+        <span class="step-label">AI Documentation</span>
+      </div>
+      <div class="bridge-step">
+        <span class="step-icon" style="color: var(--orange);"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+        <span class="step-label">Billing Automation</span>
+      </div>
+      <div class="bridge-step">
+        <span class="step-icon" style="color: #22c55e;"><i class="fa-solid fa-money-bill-trend-up"></i></span>
+        <span class="step-label">Revenue Captured</span>
+      </div>
+    </div>
+    <div class="two-col" style="height: auto;">
+      <div>
+        <table class="strat-table">
+          <thead><tr><th>Oncology Revenue Category</th><th>Per Provider/Year</th></tr></thead>
+          <tbody>
+            <tr><td>E/M Upgrades (99214/99215) &mdash; multi-condition visits</td><td class="hl hl-orange">$8-15K</td></tr>
+            <tr><td>Counseling Codes (99401-99404) &mdash; treatment education, survivorship</td><td class="hl hl-orange">$10-18K</td></tr>
+            <tr><td>ACP (99497/99498) &mdash; goals-of-care conversations</td><td class="hl hl-orange">$5-10K</td></tr>
+            <tr><td>HCC Risk Adjustment &mdash; complete oncology ICD-10 coding</td><td class="hl hl-orange">$10-25K/practice</td></tr>
+            <tr><td>Charge Leakage Recovery</td><td class="hl hl-orange">$8-12K/practice</td></tr>
+            <tr class="total-row"><td><i class="fa-solid fa-calculator"></i>&ensp;Total Recovery Per Oncologist</td><td>$40-75K/yr</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="tile" style="margin-bottom: 0;">
+          <h3 class="sky-blue"><i class="fa-solid fa-arrow-right-arrow-left"></i>&ensp;Before vs. After</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+            <div style="background: rgba(239,68,68,0.08); border-radius: 8px; padding: 14px; border: 1px solid rgba(239,68,68,0.2);">
+              <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 6px;">TODAY</div>
+              <p style="font-size: 12px; color: var(--text-dim);">Manual documentation of complex regimens, missed counseling codes, under-coded E/M, ACP conversations undocumented, 2+ hrs after-hours charting</p>
+            </div>
+            <div style="background: rgba(34,197,94,0.08); border-radius: 8px; padding: 14px; border: 1px solid rgba(34,197,94,0.2);">
+              <div style="font-size: 12px; font-weight: 700; color: #22c55e; margin-bottom: 6px;">WITH MESMERIZE</div>
+              <p style="font-size: 12px; color: var(--text-dim);">Automated SOAP notes, every counseling &amp; ACP session captured, complete oncology billing codes, HCC risk adjustment, done before leaving room</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 12: Content-to-Billing Pipeline (was original slide 8) ======================== -->
+<div class="slide-wrapper" id="slide-12">
+<div class="slide-container">
+  <div class="slide-title sky-blue">Content-to-Billing <span class="hl-sky-blue">Pipeline</span></div>
+  <div class="slide-content">
+    <p class="subtitle" style="margin-bottom: 10px; font-size: 15px;">Every patient education interaction becomes a <span class="hl hl-orange">documented, billable event</span> &mdash; automatically.</p>
+    <div class="pipeline" style="margin-bottom: 12px;">
+      <div class="pipe-step">
+        <span class="pipe-icon" style="color: var(--navy);"><i class="fa-solid fa-bone"></i></span>
+        <span class="pipe-label">3D Model / Video Shown</span>
+        <span class="pipe-detail">Content ID + ICD-10 logged</span>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-icon" style="color: var(--purple);"><i class="fa-solid fa-stopwatch"></i></span>
+        <span class="pipe-label">Engagement Logged</span>
+        <span class="pipe-detail">Duration, interactions, provider ID</span>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-icon" style="color: var(--sky-blue);"><i class="fa-solid fa-robot"></i></span>
+        <span class="pipe-label">AI Documentation</span>
+        <span class="pipe-detail">Counseling narrative generated</span>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-icon" style="color: var(--orange);"><i class="fa-solid fa-barcode"></i></span>
+        <span class="pipe-label">CPT Codes Captured</span>
+        <span class="pipe-detail">99401-99404 + E/M upgrades</span>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-icon" style="color: #22c55e;"><i class="fa-solid fa-file-export"></i></span>
+        <span class="pipe-label">Claim Ready</span>
+        <span class="pipe-detail">Complete claim auto-generated</span>
+      </div>
+    </div>
+    <div class="two-col" style="height: auto;">
+      <div class="tile">
+        <h3 class="orange"><i class="fa-solid fa-cubes"></i>&ensp;Content Data Capture</h3>
+        <table class="strat-table" style="margin-top: 10px;">
+          <thead><tr><th>Data Point</th><th>Billing Use</th></tr></thead>
+          <tbody>
+            <tr><td>3D tumor model / CURE&reg; video shown (ICD-10 linked)</td><td>Proves condition was discussed</td></tr>
+            <tr><td>Start/stop time</td><td>Duration &rarr; counseling CPT tier</td></tr>
+            <tr><td>Interactions (rotate, annotate, questions)</td><td>Active patient engagement evidence</td></tr>
+            <tr><td>Distinct conditions discussed</td><td>2 conditions &rarr; 99214; 3+ &rarr; 99215</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tile">
+        <h3 class="sky-blue"><i class="fa-solid fa-dollar-sign"></i>&ensp;Revenue Impact Per Encounter</h3>
+        <table class="strat-table" style="margin-top: 10px;">
+          <thead><tr><th>Oncology Scenario</th><th>Recovery</th></tr></thead>
+          <tbody>
+            <tr><td>20 min treatment education (undocumented today)</td><td class="hl hl-orange">+$76 (99402)</td></tr>
+            <tr><td>E/M under-coded (complex onc visit, 3+ conditions)</td><td class="hl hl-orange">+$119 (99215 vs 99213)</td></tr>
+            <tr><td>ACP conversation with 3D anatomy</td><td class="hl hl-orange">+$86 (99497)</td></tr>
+            <tr class="total-row"><td>Annual (4 pts/day &times; 250 days &times; $60 avg)</td><td>+$60K/yr</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 13: Oncology Patient Education (was original slide 9) ======================== -->
+<div class="slide-wrapper" id="slide-13">
+<div class="slide-container">
+  <div class="slide-title purple">Oncology Patient Education <span class="hl-sky-blue">Reimagined</span></div>
+  <div class="slide-content">
+    <p class="subtitle" style="margin-bottom: 16px;">Stop paying for generic patient education. Get the <span class="hl hl-green">deepest oncology content library in the industry &mdash; custom-produced and white-labeled &mdash; at zero cost</span>.</p>
+    <div class="two-col" style="height: auto; margin-bottom: 20px;">
+      <div class="tile">
+        <h3 class="sky-blue"><i class="fa-solid fa-ribbon"></i>&ensp;Oncology Content Library</h3>
+        <ul style="margin-top: 8px;">
+          <li><span class="hl" style="color: var(--text-light);">CURE&reg;</span> &mdash; largest consumer cancer publication in the U.S., covering all cancer types, treatments, and survivorship</li>
+          <li><span class="hl" style="color: var(--text-light);">OncLive&reg;</span> &mdash; leading oncology news and clinical insights for providers (Command Center &amp; Back Office)</li>
+          <li><span class="hl" style="color: var(--text-light);">Targeted Oncology&trade;</span> &amp; <span class="hl" style="color: var(--text-light);">CancerNetwork&reg;</span> &mdash; precision medicine and clinical trial content</li>
+          <li><span class="hl" style="color: var(--text-light);">Oncology Nursing News&reg;</span> &mdash; infusion nurse education and clinical updates</li>
+          <li><span class="hl" style="color: var(--text-light);">BioDigital 3D</span> &mdash; interactive anatomy models for tumor visualization and treatment education</li>
+          <li><span class="hl" style="color: var(--text-light);">5,000+ Mesmerize videos</span> including chemo, immunotherapy, radiation, and supportive care</li>
+        </ul>
+      </div>
+      <div class="tile">
+        <h3 class="orange"><i class="fa-solid fa-palette"></i>&ensp;Custom Production &amp; White Labeling</h3>
+        <div style="margin-top: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div style="background: rgba(239,68,68,0.08); border-radius: 8px; padding: 12px; border: 1px solid rgba(239,68,68,0.2);">
+              <div style="font-size: 11px; font-weight: 700; color: #ef4444; margin-bottom: 4px;">GENERIC VENDORS</div>
+              <p style="font-size: 11px; color: var(--text-dim);">Pre-packaged content. Same programming across all practices. Vendor branding. No custom production.</p>
+            </div>
+            <div style="background: rgba(34,197,94,0.08); border-radius: 8px; padding: 12px; border: 1px solid rgba(34,197,94,0.2);">
+              <div style="font-size: 11px; font-weight: 700; color: #22c55e; margin-bottom: 4px;">MESMERIZE</div>
+              <p style="font-size: 11px; color: var(--text-dim);">Custom videos, infographics, sidebars, tickers. 100% white-labeled. Your brand, your identity. Multilingual.</p>
+            </div>
+          </div>
+          <ul style="margin-top: 8px;">
+            <li><span class="hl hl-green">In-house production team</span> &mdash; custom content built around your practice</li>
+            <li><span class="hl hl-green">100% white labeled</span> &mdash; your logo, your colors, your brand on every screen</li>
+            <li><span class="hl hl-green">Multilingual</span> &mdash; English, Spanish, and Chinese</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="tagline">
+      <i class="fa-solid fa-paintbrush" style="color: var(--orange); margin-right: 8px;"></i>
+      Other vendors give you their content on their screens. Mesmerize gives you <span class="hl hl-sky-blue">your content on your screens</span>.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 14: Competitive Landscape (was original slide 10) ======================== -->
+<div class="slide-wrapper" id="slide-14">
+<div class="slide-container">
+  <div class="slide-title slate">How We <span class="hl-sky-blue">Compare</span></div>
+  <div class="slide-content">
+    <table class="comp-matrix" style="margin-bottom: 18px;">
+      <thead>
+        <tr>
+          <th style="width: 24%;">Capability</th>
+          <th style="width: 30%;"><span class="hl hl-sky-blue">Mesmerize Platform</span></th>
+          <th style="width: 23%;">PatientPoint</th>
+          <th style="width: 23%;">Abridge / Nabla</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-highlight">
+          <td>Custom Content Production</td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">Full in-house team</span> &mdash; videos, infographics, tickers</td>
+          <td><i class="fa-solid fa-xmark cross"></i> Pre-packaged only</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+        <tr>
+          <td>White Labeling</td>
+          <td><i class="fa-solid fa-check check"></i> 100% your brand</td>
+          <td><i class="fa-solid fa-xmark cross"></i> PatientPoint branded</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+        <tr class="row-highlight">
+          <td>Oncology Content Depth</td>
+          <td><i class="fa-solid fa-check check"></i> CURE, OncLive, Targeted Onc, CancerNetwork</td>
+          <td><i class="fa-solid fa-minus partial"></i> General content</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+        <tr>
+          <td>Patient Education Library</td>
+          <td><i class="fa-solid fa-check check"></i> 15,000+ owned</td>
+          <td><i class="fa-solid fa-minus partial"></i> Limited</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+        <tr class="row-highlight">
+          <td>Pharmacy Network</td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">Nationwide</span></td>
+          <td><i class="fa-solid fa-xmark cross"></i> None</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+        <tr>
+          <td>Ambient Documentation</td>
+          <td><i class="fa-solid fa-check check"></i> Complete suite</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+          <td><i class="fa-solid fa-check check"></i> Core product</td>
+        </tr>
+        <tr class="row-highlight">
+          <td>Billing Automation</td>
+          <td><i class="fa-solid fa-check check"></i> Complete</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+          <td><i class="fa-solid fa-minus partial"></i> Basic coding</td>
+        </tr>
+        <tr>
+          <td>Cost to Practice</td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">$0</span></td>
+          <td><i class="fa-solid fa-check check"></i> $0</td>
+          <td><i class="fa-solid fa-xmark cross"></i> $$$</td>
+        </tr>
+        <tr class="row-highlight">
+          <td>EHR Integration (95+)</td>
+          <td><i class="fa-solid fa-check check"></i> Bidirectional</td>
+          <td><i class="fa-solid fa-minus partial"></i> Limited</td>
+          <td><i class="fa-solid fa-check check"></i> Via API</td>
+        </tr>
+        <tr>
+          <td>Hardware Provided</td>
+          <td><i class="fa-solid fa-check check"></i> All devices</td>
+          <td><i class="fa-solid fa-check check"></i> Screens</td>
+          <td><i class="fa-solid fa-xmark cross"></i></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="tagline">
+      <i class="fa-solid fa-trophy" style="color: var(--orange); margin-right: 8px;"></i>
+      No other solution delivers <span class="hl hl-sky-blue">custom content + oncology expertise + documentation + billing + pharmacy</span> in a single, zero-cost platform
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 15: Implementation (was original slide 11) ======================== -->
+<div class="slide-wrapper" id="slide-15">
+<div class="slide-container">
+  <div class="slide-title">Getting Started Is <span class="hl-sky-blue">Simple</span></div>
+  <div class="slide-content">
+    <div class="timeline" style="margin-bottom: 24px;">
+      <div class="timeline-block" style="border-top-color: var(--navy);">
+        <div class="tl-months">WEEK 1-2</div>
+        <div class="tl-title">Discovery &amp; Planning</div>
+        <div class="tl-desc">Site assessment, EHR integration planning, workflow analysis, content customization brief</div>
+        <div class="tl-badge" style="background: rgba(0,63,92,0.15); color: var(--navy);">Kickoff</div>
+      </div>
+      <div class="timeline-block" style="border-top-color: var(--purple);">
+        <div class="tl-months">WEEK 3-4</div>
+        <div class="tl-title">Installation &amp; Integration</div>
+        <div class="tl-desc">Device installation, EHR connection, oncology content configuration, custom content production</div>
+        <div class="tl-badge" style="background: rgba(102,81,145,0.15); color: var(--purple);">Setup</div>
+      </div>
+      <div class="timeline-block" style="border-top-color: var(--sky-blue);">
+        <div class="tl-months">WEEK 5-6</div>
+        <div class="tl-title">Training &amp; Go-Live</div>
+        <div class="tl-desc">Staff training, provider orientation, workflow testing, go-live with dedicated support</div>
+        <div class="tl-badge" style="background: rgba(14,165,233,0.15); color: var(--sky-blue);">Launch</div>
+      </div>
+      <div class="timeline-block" style="border-top-color: #22c55e;">
+        <div class="tl-months">ONGOING</div>
+        <div class="tl-title">Optimization &amp; Support</div>
+        <div class="tl-desc">Performance analytics, content updates, quarterly business reviews, dedicated account team</div>
+        <div class="tl-badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Continuous</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 20px;">
+      <div class="kpi-card" style="border-top-color: var(--navy); padding: 20px;">
+        <div class="kpi-value" style="color: var(--navy); font-size: 36px;">6 Weeks</div>
+        <div class="kpi-label">From Signature to Live</div>
+        <div class="kpi-desc">Fast, turnkey deployment with minimal disruption to your practice</div>
+      </div>
+      <div class="kpi-card" style="border-top-color: var(--sky-blue); padding: 20px;">
+        <div class="kpi-value" style="color: var(--sky-blue); font-size: 36px;">Zero</div>
+        <div class="kpi-label">IT Burden on Your Team</div>
+        <div class="kpi-desc">We handle installation, device management, updates, and monitoring</div>
+      </div>
+      <div class="kpi-card" style="border-top-color: #22c55e; padding: 20px;">
+        <div class="kpi-value" style="color: #22c55e; font-size: 36px;">30 Days</div>
+        <div class="kpi-label">To Measurable Revenue Impact</div>
+        <div class="kpi-desc">Most practices see billing uplift within the first month of operation</div>
+      </div>
+    </div>
+    <div class="tagline">
+      <i class="fa-solid fa-handshake" style="color: var(--orange); margin-right: 8px;"></i>
+      Dedicated onboarding team &bull; Field sales support &bull; Ongoing account management &bull; <span class="hl hl-green">All included at $0</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 16: Thank You (was original slide 12) ======================== -->
+<div class="slide-wrapper" id="slide-16">
+<div class="slide-container title-slide">
+  <div style="margin-bottom: 30px;">
+    <span style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted);">
+      <i class="fa-solid fa-ribbon"></i>&ensp;Mesmerize &ensp;|&ensp; Point-of-Care for Community Oncology
+    </span>
+  </div>
+  <h1 style="font-family: 'Urbanist', sans-serif; font-size: 44px; font-weight: 900; line-height: 1.2; margin-bottom: 24px;">
+    Let's Transform Oncology Care Together
+  </h1>
+  <div style="background: linear-gradient(90deg, rgba(0,63,92,0.12), rgba(14,165,233,0.08)); border-radius: 12px; padding: 20px 36px; border: 1px solid var(--border-light); margin-bottom: 30px; max-width: 850px;">
+    <p style="font-size: 18px; line-height: 1.7; color: var(--text-dim); text-align: center;">
+      <span class="hl hl-navy">Eliminate documentation burden</span>&ensp;&bull;&ensp;
+      <span class="hl hl-orange">Recover $40-75K+ per oncologist</span>&ensp;&bull;&ensp;
+      <span class="hl hl-sky-blue">Oncology-specialized content</span>&ensp;&bull;&ensp;
+      <span class="hl hl-green">All at $0 cost</span>
+    </p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 900px; margin-bottom: 30px;">
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--orange); font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-dollar-sign"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">$100-175K+</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Annual value per practice</div>
+    </div>
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: #22c55e; font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-check-circle"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">$0 Cost</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Hardware + software + content</div>
+    </div>
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--sky-blue); font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-clock"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">2+ Hours Saved</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Per oncologist per day</div>
+    </div>
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--navy); font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-calendar-check"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">6 Weeks</div>
+      <div style="font-size: 11px; color: var(--text-muted);">To full deployment</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 750px; margin-bottom: 30px;">
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: #22c55e; font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-calendar-plus"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">Schedule a Demo</div>
+      <div style="font-size: 12px; color: var(--text-muted);">See the platform live</div>
+    </div>
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--orange); font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-chart-line"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">Revenue Analysis</div>
+      <div style="font-size: 12px; color: var(--text-muted);">Custom ROI for your practice</div>
+    </div>
+    <div style="text-align: center; padding: 18px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--sky-blue); font-size: 22px; margin-bottom: 8px;"><i class="fa-solid fa-rocket"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 14px; font-weight: 700;">Pilot Program</div>
+      <div style="font-size: 12px; color: var(--text-muted);">Start with one location</div>
+    </div>
+  </div>
+  <div style="margin-top: 20px; font-family: 'Urbanist'; font-size: 28px; font-weight: 800; color: var(--text-muted);">
+    Q&amp;A
+  </div>
+</div>
+</div>
+
+<script>
+// ===================== NAVIGATION =====================
+const slides = document.querySelectorAll('.slide-wrapper');
+const totalSlides = slides.length;
+let currentSlide = 0;
+const progressBar = document.getElementById('progress-bar');
+const slideCounter = document.getElementById('slide-counter');
+
+function updateUI() {
+  progressBar.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+  slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+}
+
+function goToSlide(index) {
+  if (index < 0 || index >= totalSlides) return;
+  currentSlide = index;
+  slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updateUI();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    goToSlide(currentSlide + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    goToSlide(currentSlide - 1);
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    goToSlide(0);
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    goToSlide(totalSlides - 1);
+  }
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const index = Array.from(slides).indexOf(entry.target);
+      if (index !== -1) {
+        currentSlide = index;
+        updateUI();
+      }
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(slide => observer.observe(slide));
+
+updateUI();
+</script>
+
+</body>
+</html>
